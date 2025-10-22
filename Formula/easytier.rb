@@ -5,17 +5,10 @@ class Easytier < Formula
   license "LGPL-3.0"
   head "https://github.com/EasyTier/EasyTier", branch: "main"
 
-  # ✅ macOS ARM64 (Apple Silicon) 二进制包
   url "https://github.com/EasyTier/EasyTier/releases/download/v2.4.5/easytier-macos-aarch64-v2.4.5.zip"
   sha256 "ddf94b070f84d899504ad154666ea3f0369be6cc4da375a2d98143a312daef01"
 
-  livecheck do
-    url :url
-    strategy :github_latest
-  end
-
   def install
-    # 解压出的可执行文件放入 bin 目录
     bin.install "easytier-core"
     bin.install "easytier-cli"
     bin.install "easytier-web"
@@ -37,7 +30,11 @@ class Easytier < Formula
   end
 
   service do
-    run [opt_bin/"easytier-core", "-c", "~/.config/easytier/config.toml"]
+    # 读取 ~/.config/easytier/username.txt
+    username_file = File.expand_path("~/.config/easytier/username.txt")
+    username = File.exist?(username_file) ? File.read(username_file).strip : "default"
+
+    run [opt_bin/"easytier-core", "-w", username]
     keep_alive true
     require_root true
     working_dir var
