@@ -23,18 +23,20 @@ class Easytier < Formula
 
           sudo brew services start easytier
 
-      Note: This will change ownership of some EasyTier-related paths to root,
-      which may require manual removal using `sudo rm` during future upgrades,
-      reinstalls, or uninstalls.
+      Note:
+        - Each restart now automatically reads ~/.config/easytier/username.txt.
+        - Default username will be 'default' if the file doesn't exist.
+        - Logs: #{var}/log/easytier.log
     EOS
   end
 
   service do
-    # 读取 ~/.config/easytier/username.txt
-    username_file = File.expand_path("~/.config/easytier/username.txt")
-    username = File.exist?(username_file) ? File.read(username_file).strip : "default"
+    # 使用 bash 动态读取 username.txt（每次启动都会重新加载）
+    run [
+      "/bin/bash", "-c",
+      "#{opt_bin}/easytier-core -w $(cat ~/.config/easytier/username.txt 2>/dev/null || echo default)"
+    ]
 
-    run [opt_bin/"easytier-core", "-w", username]
     keep_alive true
     require_root true
     working_dir var
